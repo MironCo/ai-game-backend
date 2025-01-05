@@ -27,6 +27,6 @@ func main() {
 
 func helloWorld(c *gin.Context) {
 	c.JSON(200, gin.H{
-		"message": "Hello World!",
+		"message": "Hello World! This is a test (:",
 	})
 }
