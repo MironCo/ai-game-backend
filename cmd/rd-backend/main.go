@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"rd-backend/internal/api"
+	"rd-backend/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,14 +21,13 @@ func main() {
 		port = "8080" // Default fallback
 	}
 
-	router.GET("/", helloWorld)
+	// Websockets
+	wsHandler := ws.NewHandler()
+	router.GET("/ws", wsHandler.Handle)
+
+	apiHandler := api.NewHandler()
+	router.GET("/hello", apiHandler.HelloWorld)
 
 	fmt.Printf("Server Running On Port 8080\n")
 	router.Run(":" + port)
-}
-
-func helloWorld(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "Hello World! This is a test (:",
-	})
 }
