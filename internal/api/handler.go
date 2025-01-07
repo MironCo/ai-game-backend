@@ -1,14 +1,22 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"rd-backend/internal/db"
 
-type Handler struct{}
+	"github.com/gin-gonic/gin"
+)
 
-func NewHandler() *Handler {
-	return &Handler{}
+type APIHandler struct {
+	dbHandler *db.DBHandler
 }
 
-func (h *Handler) HelloWorld(c *gin.Context) {
+func NewHandler(dbHandler *db.DBHandler) *APIHandler {
+	return &APIHandler{
+		dbHandler: dbHandler,
+	}
+}
+
+func (h *APIHandler) HelloWorld(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "Hello World! This is a test (:",
 	})

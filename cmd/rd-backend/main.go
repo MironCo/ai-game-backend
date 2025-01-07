@@ -4,12 +4,20 @@ import (
 	"fmt"
 	"os"
 	"rd-backend/internal/api"
+	"rd-backend/internal/db"
 	"rd-backend/internal/ws"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load environment variables from the .env file
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
+
 	// Set to release mode, but keep terminal logging
 	gin.SetMode(gin.ReleaseMode)
 
@@ -21,13 +29,19 @@ func main() {
 		port = "8080" // Default fallback
 	}
 
+	dbHandler, err := db.NewHandler()
+	if err != nil {
+		fmt.Printf("MongoDB Error: %w", err)
+	}
+	defer dbHandler.Disconnect()
+
 	// Websockets
 	wsHandler := ws.NewHandler()
 	router.GET("/ws", wsHandler.Handle)
 
-	apiHandler := api.NewHandler()
+	apiHandler := api.NewHandler(dbHandler)
 	router.GET("/hello", apiHandler.HelloWorld)
 
-	fmt.Printf("Server Running On Port 8080\n")
+	fmt.Printf("Server Running On Port " + port + "\n")
 	router.Run(":" + port)
 }

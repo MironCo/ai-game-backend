@@ -9,12 +9,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Handler struct {
+type WSHandler struct {
 	upgrader websocket.Upgrader
 }
 
-func NewHandler() *Handler {
-	return &Handler{
+func NewHandler() *WSHandler {
+	return &WSHandler{
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -23,7 +23,7 @@ func NewHandler() *Handler {
 	}
 }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *WSHandler) Handle(c *gin.Context) {
 	ws, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Printf("Upgrade Error: %w", err)
@@ -45,7 +45,7 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 }
 
-func (h *Handler) handleMessage(msg Message) Message {
+func (h *WSHandler) handleMessage(msg Message) Message {
 	switch msg.Type {
 	case "chat":
 		var chatMsg ChatMessage
@@ -60,9 +60,9 @@ func (h *Handler) handleMessage(msg Message) Message {
 
 }
 
-func (h *Handler) handleChatMessage(msg ChatMessage) Message {
+func (h *WSHandler) handleChatMessage(msg ChatMessage) Message {
 	response := ChatMessage{
-		Text:  "Testing the backend for now, respondign to " + msg.Text,
+		Text:  "Testing the backend for now, responding to " + msg.Text,
 		NpcId: msg.NpcId,
 	}
 
