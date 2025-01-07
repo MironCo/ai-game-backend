@@ -41,7 +41,9 @@ func (h *WSHandler) Handle(c *gin.Context) {
 		var msg types.Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Fatal("Read Error: %w", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("Read Error: %v", err) // Changed from Fatal to Printf
+			}
 			break
 		}
 
