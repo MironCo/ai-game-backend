@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"rd-backend/internal/ai"
+	"rd-backend/internal/types"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
 type WSHandler struct {
-	upgrader websocket.Upgrader
+	upgrader  websocket.Upgrader
+	aiHandler *ai.AIHandler
 }
 
 func NewHandler() *WSHandler {
@@ -20,23 +23,24 @@ func NewHandler() *WSHandler {
 				return true
 			},
 		},
+		aiHandler: ai.NewHandler(),
 	}
 }
 
 func (h *WSHandler) Handle(c *gin.Context) {
 	ws, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("Upgrade Error: %w", err)
+		log.Fatal("Upgrade Error: %w", err)
 		return
 	}
 
 	defer ws.Close()
 
 	for {
-		var msg Message
+		var msg types.Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("Read Error: %w", err)
+			log.Fatal("Read Error: %w", err)
 			break
 		}
 
@@ -45,39 +49,43 @@ func (h *WSHandler) Handle(c *gin.Context) {
 	}
 }
 
-func (h *WSHandler) handleMessage(msg Message) Message {
+func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 	switch msg.Type {
 	case "chat":
-		var chatMsg ChatMessage
+		var chatMsg types.ChatMessage
 		if err := json.Unmarshal(msg.Content, &chatMsg); err != nil {
-			log.Println("Error Parsing Message to Chat Message: %w", err)
+			log.Fatal("Error Parsing Message to Chat Message: %w", err)
 			return createErrorMessage("Invalid Chat Message")
 		}
-		return h.handleChatMessage(chatMsg)
+		return h.handleChatMessage(&chatMsg)
 	default:
 		return createErrorMessage("Uknown Message Type")
 	}
-
 }
 
-func (h *WSHandler) handleChatMessage(msg ChatMessage) Message {
-	response := ChatMessage{
-		Text:  "Testing the backend for now, responding to " + msg.Text,
-		NpcId: msg.NpcId,
+func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
+	completion, err := h.aiHandler.GetChatCompletion(msg.Text)
+	if err != nil {
+		return createErrorMessage(err.Error())
+	}
+
+	response := types.ChatResponse{
+		Completion: completion,
+		NpcId:      msg.NpcId,
 	}
 
 	content, _ := json.Marshal(response)
-	return Message{
+	return types.WSResponse{
 		Type:    "chat",
 		Content: content,
 	}
 }
 
-func createErrorMessage(msg string) Message {
+func createErrorMessage(msg string) types.WSResponse {
 	content, _ := json.Marshal(map[string]string{
 		"error": msg,
 	})
-	return Message{
+	return types.WSResponse{
 		Type:    "error",
 		Content: content,
 	}

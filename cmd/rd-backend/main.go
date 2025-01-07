@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"rd-backend/internal/api"
 	"rd-backend/internal/db"
@@ -31,7 +32,7 @@ func main() {
 
 	dbHandler, err := db.NewHandler()
 	if err != nil {
-		fmt.Printf("MongoDB Error: %w", err)
+		log.Fatal("MongoDB Error: %w", err)
 	}
 	defer dbHandler.Disconnect()
 
@@ -41,6 +42,8 @@ func main() {
 
 	apiHandler := api.NewHandler(dbHandler)
 	router.GET("/hello", apiHandler.HelloWorld)
+	router.POST("/register", apiHandler.RegisterPlayer)
+	router.POST("/test-ai", apiHandler.TestAIMessage)
 
 	fmt.Printf("Server Running On Port " + port + "\n")
 	router.Run(":" + port)

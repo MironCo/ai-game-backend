@@ -1,6 +1,6 @@
-package db
+package types
 
 type Player struct {
 	ID      string `bson:"_id,omitempty"`
-	Message string `bson:"message"`
+	UnityID string `bson:"unity_id"`
 }

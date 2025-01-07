@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"rd-backend/internal/types"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,9 +45,9 @@ func (h *DBHandler) Disconnect() error {
 	return nil
 }
 
-func (h *DBHandler) CreatePlayerDocument() {
-	player := Player{
-		Message: "Hello World!",
+func (h *DBHandler) CreatePlayerDocument(req *types.RegisterPlayerRequest) {
+	player := types.Player{
+		UnityID: req.UnityID,
 	}
 
 	collection := h.client.Database("RdDatabase").Collection("Players")
@@ -55,5 +57,22 @@ func (h *DBHandler) CreatePlayerDocument() {
 	}
 
 	//Log
-	fmt.Printf("Inserted Player with ID: %v\n", insertResult.InsertedID)
+	fmt.Printf("Inserted Player with ObjectID: %v\n", insertResult.InsertedID)
+}
+
+func (h *DBHandler) GetPlayerByUnityId(unityID string) (*types.Player, error) {
+	collection := h.client.Database("RdDatabase").Collection("Players")
+
+	filter := bson.M{"unity_id": unityID}
+
+	var player types.Player
+	err := collection.FindOne(context.TODO(), filter).Decode(&player)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("player not found")
+		}
+		return nil, fmt.Errorf("database error: %v", err)
+	}
+
+	return &player, nil
 }
