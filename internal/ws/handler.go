@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"rd-backend/internal/ai"
@@ -53,16 +54,18 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 	switch msg.Type {
 	case "chat":
 		var chatMsg types.ChatMessage
+		fmt.Println(string(msg.Content))
 		if err := json.Unmarshal(msg.Content, &chatMsg); err != nil {
 			log.Fatal("Error Parsing Message to Chat Message: %w", err)
 			return createErrorMessage("Invalid Chat Message")
 		}
 		return h.handleChatMessage(&chatMsg)
 	default:
-		return createErrorMessage("Uknown Message Type")
+		return createErrorMessage("Unknown Message Type")
 	}
 }
 
+// "chat"
 func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
 	completion, err := h.aiHandler.GetChatCompletion(msg.Text)
 	if err != nil {
