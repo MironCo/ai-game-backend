@@ -1,4 +1,3 @@
-// ai/handler.go
 package ai
 
 import (
@@ -25,14 +24,29 @@ func NewHandler() *AIHandler {
 	}
 }
 
+type Provider struct {
+	Order          []string `json:"order,omitempty"`
+	AllowFallbacks bool     `json:"allow_fallbacks,omitempty"`
+}
+
+type OpenRouterRequest struct {
+	Model    string                    `json:"model"`
+	Messages []types.OpenRouterMessage `json:"messages"`
+	Provider *Provider                 `json:"provider,omitempty"`
+}
+
 func (h *AIHandler) GetChatCompletion(message string) (string, error) {
-	request := types.OpenRouterRequest{
-		Model: "openai/gpt-4o-mini",
+	request := OpenRouterRequest{
+		Model: "meta-llama/llama-3.3-70b-instruct",
 		Messages: []types.OpenRouterMessage{
 			{
 				Role:    "user",
 				Content: message,
 			},
+		},
+		Provider: &Provider{
+			Order:          []string{"OpenAI", "Together"},
+			AllowFallbacks: false,
 		},
 	}
 

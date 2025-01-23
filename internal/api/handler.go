@@ -40,7 +40,27 @@ func (h *APIHandler) RegisterPlayer(c *gin.Context) {
 }
 
 func (h *APIHandler) LoginPlayer(c *gin.Context) {
+	var req types.LoginPlayerRequest
 
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	player, err := h.dbHandler.GetPlayerByUnityId(req.UnityID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusFound, types.CreateUserResponse{
+		UnityID: req.UnityID,
+		Message: player.ID,
+	})
 }
 
 func (h *APIHandler) HelloWorld(c *gin.Context) {

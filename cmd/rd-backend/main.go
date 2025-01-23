@@ -43,8 +43,9 @@ func main() {
 	apiHandler := api.NewHandler(dbHandler)
 	router.GET("/hello", apiHandler.HelloWorld)
 	router.POST("/register", apiHandler.RegisterPlayer)
-	router.POST("/test-ai", apiHandler.TestAIMessage)
+	router.POST("/login", apiHandler.LoginPlayer)
+	//router.POST("/test-ai", apiHandler.TestAIMessage)
 
-	fmt.Printf("Server Running On Port " + port + "\n")
+	fmt.Println("Server Running On Port " + port)
 	router.Run(":" + port)
 }

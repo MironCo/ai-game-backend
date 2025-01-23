@@ -42,7 +42,7 @@ func (h *WSHandler) Handle(c *gin.Context) {
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("Read Error: %v", err) // Changed from Fatal to Printf
+				log.Printf("Read Error: %v", err)
 			}
 			break
 		}
