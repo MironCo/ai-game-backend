@@ -45,7 +45,7 @@ func (h *AIHandler) GetChatCompletion(message string) (string, error) {
 			},
 		},
 		Provider: &Provider{
-			Order:          []string{"OpenAI", "Together"},
+			Order:          []string{"DeepInfra", "Lepton", "Together"},
 			AllowFallbacks: false,
 		},
 	}

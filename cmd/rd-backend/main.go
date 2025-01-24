@@ -37,7 +37,7 @@ func main() {
 	defer dbHandler.Disconnect()
 
 	// Websockets
-	wsHandler := ws.NewHandler()
+	wsHandler := ws.NewHandler(dbHandler)
 	router.GET("/ws", wsHandler.Handle)
 
 	apiHandler := api.NewHandler(dbHandler)

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"rd-backend/internal/ai"
+	"rd-backend/internal/db"
 	"rd-backend/internal/types"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,10 @@ import (
 type WSHandler struct {
 	upgrader  websocket.Upgrader
 	aiHandler *ai.AIHandler
+	dbHandler *db.DBHandler
 }
 
-func NewHandler() *WSHandler {
+func NewHandler(dbHandler *db.DBHandler) *WSHandler {
 	return &WSHandler{
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
@@ -25,6 +27,7 @@ func NewHandler() *WSHandler {
 			},
 		},
 		aiHandler: ai.NewHandler(),
+		dbHandler: dbHandler,
 	}
 }
 
@@ -69,6 +72,8 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 
 // "chat"
 func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
+	h.dbHandler.AddMessageToDatabase(msg.UnityID, msg.Text, "player", msg.NpcId)
+
 	completion, err := h.aiHandler.GetChatCompletion(msg.Text)
 	if err != nil {
 		return createErrorMessage(err.Error())
@@ -79,7 +84,10 @@ func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
 		NpcId:      msg.NpcId,
 	}
 
+	h.dbHandler.AddMessageToDatabase(msg.UnityID, response.Completion, msg.NpcId, "player")
+
 	content, _ := json.Marshal(response)
+
 	return types.WSResponse{
 		Type:    "chat",
 		Content: content,

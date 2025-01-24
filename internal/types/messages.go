@@ -9,8 +9,9 @@ type Message struct {
 }
 
 type ChatMessage struct {
-	Text  string `json:"text"`
-	NpcId string `json:"npcId"`
+	UnityID string `json:"unity_id"`
+	Text    string `json:"text"`
+	NpcId   string `json:"npcId"`
 }
 
 // Server Reponses

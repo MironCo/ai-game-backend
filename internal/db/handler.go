@@ -72,3 +72,45 @@ func (h *DBHandler) GetPlayerByUnityId(unityID string) (*types.Player, error) {
 
 	return &player, nil
 }
+
+func (h *DBHandler) AddMessageToDatabase(unityID string, messageText string, sender string, sentTo string) error {
+	_, err := h.db.Exec(`
+        INSERT INTO messages (unity_id, message, sender, sent_to)
+        VALUES ($1, $2, $3, $4)
+    `, unityID, messageText, sender, sentTo)
+
+	if err != nil {
+		fmt.Println("Error adding message!" + err.Error())
+		return fmt.Errorf("failed to add message: %w", err)
+	}
+
+	//fmt.Printf("Inserted Player with Unity ID: %s\n", UnityID)
+	return nil
+}
+
+func (h *DBHandler) GetLastMessagesFromDB(unityID string, numberBack int) ([]types.DBChatMessage, error) {
+	rows, err := h.db.Query(`
+    SELECT message, sender, sent_to, created_at 
+    	FROM messages 
+    	WHERE unity_id = $1 
+    	ORDER BY created_at DESC 
+    	LIMIT $2
+	`, unityID, numberBack)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get messages: %w", err)
+	}
+
+	defer rows.Close()
+
+	var messages []types.DBChatMessage
+	for rows.Next() {
+		var msg types.DBChatMessage
+		if err := rows.Scan(&msg.MessageText, &msg.Sender, &msg.SentTo, &msg.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		messages = append(messages, msg)
+	}
+
+	return messages, nil
+}
