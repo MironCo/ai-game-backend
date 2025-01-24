@@ -32,7 +32,7 @@ func main() {
 
 	dbHandler, err := db.NewHandler()
 	if err != nil {
-		log.Fatal("MongoDB Error: %w", err)
+		log.Fatal("Postgres Error: %w", err)
 	}
 	defer dbHandler.Disconnect()
 

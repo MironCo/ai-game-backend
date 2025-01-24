@@ -1,77 +1,73 @@
 package db
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"rd-backend/internal/types"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	_ "github.com/lib/pq"
 )
 
 type DBHandler struct {
-	client *mongo.Client
+	db *sql.DB
 }
 
 func NewHandler() (*DBHandler, error) {
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	options := options.Client().ApplyURI(os.Getenv("MONGODB_URI")).SetServerAPIOptions(serverAPI)
-
-	client, err := mongo.Connect(context.TODO(), options)
+	connStr := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		return nil, fmt.Errorf("failed to connect to Postgres: %w", err)
 	}
 
-	// Ping to verify connection
-	if err := client.Ping(context.TODO(), nil); err != nil {
-		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+	// Verify connection
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping Postgres: %w", err)
 	}
-	fmt.Printf("MongoDB Connected!\n")
+	fmt.Printf("Postgres Connected!\n")
 
 	return &DBHandler{
-		client: client,
-	}, err
+		db: db,
+	}, nil
 }
 
 func (h *DBHandler) Disconnect() error {
-	if h.client != nil {
-		if err := h.client.Disconnect(context.TODO()); err != nil {
-			return fmt.Errorf("failed to disconnect from MongoDB: %w", err)
+	if h.db != nil {
+		if err := h.db.Close(); err != nil {
+			return fmt.Errorf("failed to disconnect from Postgres: %w", err)
 		}
 	}
 	return nil
 }
 
-func (h *DBHandler) CreatePlayerDocument(req *types.RegisterPlayerRequest) {
-	player := types.Player{
-		UnityID: req.UnityID,
-	}
+func (h *DBHandler) CreatePlayer(req *types.RegisterPlayerRequest) error {
+	_, err := h.db.Exec(`
+        INSERT INTO players (unity_id)
+        VALUES ($1)
+    `, req.UnityID)
 
-	collection := h.client.Database("RdDatabase").Collection("Players")
-	insertResult, err := collection.InsertOne(context.Background(), player)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to create player: %w", err)
 	}
 
-	//Log
-	fmt.Printf("Inserted Player with ObjectID: %v\n", insertResult.InsertedID)
+	fmt.Printf("Inserted Player with Unity ID: %s\n", req.UnityID)
+	return nil
 }
 
 func (h *DBHandler) GetPlayerByUnityId(unityID string) (*types.Player, error) {
-	collection := h.client.Database("RdDatabase").Collection("Players")
-
-	filter := bson.M{"unity_id": unityID}
-
 	var player types.Player
-	err := collection.FindOne(context.TODO(), filter).Decode(&player)
+
+	err := h.db.QueryRow(`
+        SELECT id, unity_id 
+        FROM players 
+        WHERE unity_id = $1
+    `, unityID).Scan(&player.ID, &player.UnityID)
+
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("player not found")
 		}
-		return nil, fmt.Errorf("database error: %v", err)
+		return nil, fmt.Errorf("database error: %w", err)
 	}
 
 	return &player, nil
