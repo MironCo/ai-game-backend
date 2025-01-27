@@ -1,0 +1,20 @@
+{
+    "bob_01": {
+        "npc_id": "bob_01",
+        "name": "Bob",
+        "location": "Town Square",
+        "occupation": "Shopkeeper",
+        "traits": [
+            "friendly",
+            "simple",
+            "reliable"
+        ],
+        "quirks": [
+            "Always mentions the weather",
+            "Counts inventory twice"
+        ],
+        "goals": "Run a modest but successful shop",
+        "backstory": "Born and raised in town, took over his father's shop. Nothing exciting has ever happened to him.",
+        "speech_style": "Speaks plainly and directly, uses simple words"
+    }
+}

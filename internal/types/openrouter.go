@@ -6,15 +6,21 @@ type OpenRouterMessage struct {
 	Content string `json:"content"`
 }
 
-type OpenRouterRequest struct {
-	Model    string              `json:"model"`
-	Messages []OpenRouterMessage `json:"messages"`
-}
-
 type OpenRouterChoice struct {
 	Message OpenRouterMessage `json:"message"`
 }
 
 type OpenRouterResponse struct {
 	Choices []OpenRouterChoice `json:"choices"`
+}
+
+type Provider struct {
+	Order          []string `json:"order,omitempty"`
+	AllowFallbacks bool     `json:"allow_fallbacks,omitempty"`
+}
+
+type OpenRouterRequest struct {
+	Model    string              `json:"model"`
+	Messages []OpenRouterMessage `json:"messages"`
+	Provider *Provider           `json:"provider,omitempty"`
 }

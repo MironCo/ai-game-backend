@@ -2,7 +2,6 @@ package ws
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"rd-backend/internal/ai"
@@ -19,14 +18,14 @@ type WSHandler struct {
 	dbHandler *db.DBHandler
 }
 
-func NewHandler(dbHandler *db.DBHandler) *WSHandler {
+func NewHandler(dbHandler *db.DBHandler, aiHandler *ai.AIHandler) *WSHandler {
 	return &WSHandler{
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
 			},
 		},
-		aiHandler: ai.NewHandler(),
+		aiHandler: aiHandler,
 		dbHandler: dbHandler,
 	}
 }
@@ -59,12 +58,19 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 	switch msg.Type {
 	case "chat":
 		var chatMsg types.ChatMessage
-		fmt.Println(string(msg.Content))
+		//fmt.Println(string(msg.Content))
 		if err := json.Unmarshal(msg.Content, &chatMsg); err != nil {
 			log.Fatal("Error Parsing Message to Chat Message: %w", err)
 			return createErrorMessage("Invalid Chat Message")
 		}
 		return h.handleChatMessage(&chatMsg)
+	case "system":
+		var systemMsg types.ChatMessage
+		if err := json.Unmarshal(msg.Content, &systemMsg); err != nil {
+			log.Fatal("Error Parsing Message to System Message: %w", err)
+			return createErrorMessage("Invalid System Message")
+		}
+		return h.handleSystemMessage(&systemMsg)
 	default:
 		return createErrorMessage("Unknown Message Type")
 	}
@@ -72,15 +78,20 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 
 // "chat"
 func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
+	history, err := h.dbHandler.GetLastMessagesFromDB(msg.UnityID, 4)
+	if err != nil {
+
+	}
+
 	h.dbHandler.AddMessageToDatabase(msg.UnityID, msg.Text, "player", msg.NpcId)
 
-	completion, err := h.aiHandler.GetChatCompletion(msg.Text)
-	if err != nil {
+	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, "user", msg.NpcId)
+	if err != nil || completion == nil {
 		return createErrorMessage(err.Error())
 	}
 
 	response := types.ChatResponse{
-		Completion: completion,
+		Completion: *completion,
 		NpcId:      msg.NpcId,
 	}
 
@@ -90,6 +101,35 @@ func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
 
 	return types.WSResponse{
 		Type:    "chat",
+		Content: content,
+	}
+}
+
+// "system"
+func (h *WSHandler) handleSystemMessage(msg *types.ChatMessage) types.WSResponse {
+	history, err := h.dbHandler.GetLastMessagesFromDB(msg.UnityID, 4)
+	if err != nil {
+
+	}
+
+	h.dbHandler.AddMessageToDatabase(msg.UnityID, msg.Text, "system", msg.NpcId)
+
+	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, "system", msg.NpcId)
+	if err != nil || completion == nil {
+		return createErrorMessage(err.Error())
+	}
+
+	response := types.ChatResponse{
+		Completion: *completion,
+		NpcId:      msg.NpcId,
+	}
+
+	h.dbHandler.AddMessageToDatabase(msg.UnityID, response.Completion, msg.NpcId, "player")
+
+	content, _ := json.Marshal(response)
+
+	return types.WSResponse{
+		Type:    "system",
 		Content: content,
 	}
 }

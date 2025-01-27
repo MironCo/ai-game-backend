@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"rd-backend/internal/ai"
+	"rd-backend/internal/ai/npc"
 	"rd-backend/internal/api"
 	"rd-backend/internal/db"
 	"rd-backend/internal/ws"
@@ -30,16 +32,27 @@ func main() {
 		port = "8080" // Default fallback
 	}
 
+	// NPC Config
+	npcs, err := npc.LoadNPCConfig("internal/config/npc.json")
+	if err != nil {
+		log.Fatal("Cannot Load NPC Config: %w", err)
+	}
+
+	// Database
 	dbHandler, err := db.NewHandler()
 	if err != nil {
 		log.Fatal("Postgres Error: %w", err)
 	}
 	defer dbHandler.Disconnect()
 
+	// AI
+	aiHandler := ai.NewHandler(&npcs)
+
 	// Websockets
-	wsHandler := ws.NewHandler(dbHandler)
+	wsHandler := ws.NewHandler(dbHandler, aiHandler)
 	router.GET("/ws", wsHandler.Handle)
 
+	// API
 	apiHandler := api.NewHandler(dbHandler)
 	router.GET("/hello", apiHandler.HelloWorld)
 	router.POST("/register", apiHandler.RegisterPlayer)
