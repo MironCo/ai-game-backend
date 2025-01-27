@@ -77,7 +77,7 @@ func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMess
 	}
 
 	h.addHeaders(req)
-	fmt.Println(req.Body)
+	//fmt.Println(req.Body)
 
 	resp, err := h.client.Do(req)
 	if err != nil {
