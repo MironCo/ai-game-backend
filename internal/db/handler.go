@@ -13,7 +13,7 @@ type DBHandler struct {
 	db *sql.DB
 }
 
-func NewHandler() (*DBHandler, error) {
+func NewDBHandler() (*DBHandler, error) {
 	connStr := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {

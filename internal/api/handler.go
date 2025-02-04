@@ -12,7 +12,7 @@ type APIHandler struct {
 	dbHandler *db.DBHandler
 }
 
-func NewHandler(dbHandler *db.DBHandler) *APIHandler {
+func NewAPIHandler(dbHandler *db.DBHandler) *APIHandler {
 	return &APIHandler{
 		dbHandler: dbHandler,
 	}

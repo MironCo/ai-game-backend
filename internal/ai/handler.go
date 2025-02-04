@@ -18,7 +18,7 @@ type AIHandler struct {
 	npcConfigs *npc.NPCs
 }
 
-func NewHandler(npcConfigs *npc.NPCs) *AIHandler {
+func NewAIHandler(npcConfigs *npc.NPCs) *AIHandler {
 	return &AIHandler{
 		client:     &http.Client{},
 		baseURL:    "https://openrouter.ai/api/v1/chat/completions",

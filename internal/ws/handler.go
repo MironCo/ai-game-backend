@@ -18,7 +18,7 @@ type WSHandler struct {
 	dbHandler *db.DBHandler
 }
 
-func NewHandler(dbHandler *db.DBHandler, aiHandler *ai.AIHandler) *WSHandler {
+func NewWebsocketHandler(dbHandler *db.DBHandler, aiHandler *ai.AIHandler) *WSHandler {
 	return &WSHandler{
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
@@ -109,10 +109,8 @@ func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
 func (h *WSHandler) handleSystemMessage(msg *types.ChatMessage) types.WSResponse {
 	history, err := h.dbHandler.GetLastMessagesFromDB(msg.UnityID, 4)
 	if err != nil {
-
+		return createErrorMessage("Could not get last messages from Database")
 	}
-
-	h.dbHandler.AddMessageToDatabase(msg.UnityID, msg.Text, "system", msg.NpcId)
 
 	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, "system", msg.NpcId)
 	if err != nil || completion == nil {

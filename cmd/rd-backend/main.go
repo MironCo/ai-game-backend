@@ -39,21 +39,24 @@ func main() {
 	}
 
 	// Database
-	dbHandler, err := db.NewHandler()
+	dbHandler, err := db.NewDBHandler()
 	if err != nil {
 		log.Fatal("Postgres Error: %w", err)
 	}
 	defer dbHandler.Disconnect()
 
 	// AI
-	aiHandler := ai.NewHandler(&npcs)
+	aiHandler := ai.NewAIHandler(&npcs)
 
 	// Websockets
-	wsHandler := ws.NewHandler(dbHandler, aiHandler)
+	wsHandler := ws.NewWebsocketHandler(dbHandler, aiHandler)
 	router.GET("/ws", wsHandler.Handle)
 
+	//Texting TODO
+	//textingHandler := api.NewTextingHandler()
+
 	// API
-	apiHandler := api.NewHandler(dbHandler)
+	apiHandler := api.NewAPIHandler(dbHandler)
 	router.GET("/hello", apiHandler.HelloWorld)
 	router.POST("/register", apiHandler.RegisterPlayer)
 	router.POST("/login", apiHandler.LoginPlayer)
