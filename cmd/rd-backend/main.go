@@ -53,13 +53,15 @@ func main() {
 	router.GET("/ws", wsHandler.Handle)
 
 	//Texting TODO
-	//textingHandler := api.NewTextingHandler()
+	textingHandler := api.NewTextingHandler()
+	//go textingHandler.SendSMSBasic()
 
 	// API
 	apiHandler := api.NewAPIHandler(dbHandler)
 	router.GET("/hello", apiHandler.HelloWorld)
 	router.POST("/register", apiHandler.RegisterPlayer)
 	router.POST("/login", apiHandler.LoginPlayer)
+	router.POST("/sms/receive", textingHandler.ReceiveSMS)
 	//router.POST("/test-ai", apiHandler.TestAIMessage)
 
 	fmt.Println("Server Running On Port " + port)

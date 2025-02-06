@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/twilio/twilio-go"
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
 )
@@ -39,4 +40,26 @@ func (h *TextingHandler) SendSMSBasic() {
 		return
 	}
 	fmt.Println("Message sent successfully!")
+}
+
+func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
+	from := c.PostForm("From")
+	body := c.PostForm("Body")
+
+	// Send automated response
+	err := h.SendSMS(
+		"+18885103459", // Your Twilio number
+		from,           // Sender's number
+		fmt.Sprintf("Received your message: %s", body),
+	)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"status":  "success",
+		"message": "Response sent",
+	})
 }

@@ -1,8 +1,9 @@
 package types
 
 type Player struct {
-	ID      string `json:"_id,omitempty" db:"id"`
-	UnityID string `json:"unity_id" db:"unity_id"`
+	ID          string `json:"_id,omitempty" db:"id"`
+	UnityID     string `json:"unity_id" db:"unity_id"`
+	PhoneNumber string `json:"phone_number" db:"phone_number"`
 }
 
 type DBChatMessage struct {

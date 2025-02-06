@@ -33,7 +33,7 @@ func NewWebsocketHandler(dbHandler *db.DBHandler, aiHandler *ai.AIHandler) *WSHa
 func (h *WSHandler) Handle(c *gin.Context) {
 	ws, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Fatal("Upgrade Error: %w", err)
+		createErrorMessage("Upgrade Error: " + err.Error())
 		return
 	}
 
@@ -44,7 +44,7 @@ func (h *WSHandler) Handle(c *gin.Context) {
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("Read Error: %v", err)
+				createErrorMessage("Upgrade Error: " + err.Error())
 			}
 			break
 		}
@@ -60,14 +60,14 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 		var chatMsg types.ChatMessage
 		//fmt.Println(string(msg.Content))
 		if err := json.Unmarshal(msg.Content, &chatMsg); err != nil {
-			log.Fatal("Error Parsing Message to Chat Message: %w", err)
+			log.Printf("Error Parsing Message to Chat Message: %v", err)
 			return createErrorMessage("Invalid Chat Message")
 		}
 		return h.handleChatMessage(&chatMsg)
 	case "system":
 		var systemMsg types.ChatMessage
 		if err := json.Unmarshal(msg.Content, &systemMsg); err != nil {
-			log.Fatal("Error Parsing Message to System Message: %w", err)
+			log.Printf("Error Parsing Message to System Message: %v", err)
 			return createErrorMessage("Invalid System Message")
 		}
 		return h.handleSystemMessage(&systemMsg)
@@ -80,7 +80,7 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
 	history, err := h.dbHandler.GetLastMessagesFromDB(msg.UnityID, 4)
 	if err != nil {
-
+		return createErrorMessage(err.Error())
 	}
 
 	h.dbHandler.AddMessageToDatabase(msg.UnityID, msg.Text, "player", msg.NpcId)
