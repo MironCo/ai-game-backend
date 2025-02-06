@@ -43,23 +43,27 @@ func (h *TextingHandler) SendSMSBasic() {
 }
 
 func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
-	from := c.PostForm("From")
-	body := c.PostForm("Body")
+	// Log incoming request for debugging
+	fmt.Printf("Received SMS webhook: %+v\n", c.Request.PostForm)
 
-	// Send automated response
-	err := h.SendSMS(
-		"+18885103459", // Your Twilio number
-		from,           // Sender's number
-		fmt.Sprintf("Received your message: %s", body),
-	)
-
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
+	// Return 200 immediately to acknowledge receipt
 	c.JSON(200, gin.H{
-		"status":  "success",
-		"message": "Response sent",
+		"status": "received",
 	})
+
+	// Process asynchronously
+	go func() {
+		from := c.PostForm("From")
+		body := c.PostForm("Body")
+
+		err := h.SendSMS(
+			"+18885103459",
+			from,
+			fmt.Sprintf("Got your message: %s", body),
+		)
+
+		if err != nil {
+			fmt.Printf("Error sending response SMS: %v\n", err)
+		}
+	}()
 }
