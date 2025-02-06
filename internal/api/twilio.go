@@ -43,27 +43,22 @@ func (h *TextingHandler) SendSMSBasic() {
 }
 
 func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
-	// Log incoming request for debugging
+	// Set content type to XML
+	c.Header("Content-Type", "text/xml")
+
+	// Log incoming request
 	fmt.Printf("Received SMS webhook: %+v\n", c.Request.PostForm)
 
-	// Return 200 immediately to acknowledge receipt
-	c.JSON(200, gin.H{
-		"status": "received",
-	})
+	// Return TwiML response
+	c.String(200, `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Message>Thanks for your message!</Message>
+</Response>`)
 
-	// Process asynchronously
+	// Process asynchronously if needed
 	go func() {
 		from := c.PostForm("From")
 		body := c.PostForm("Body")
-
-		err := h.SendSMS(
-			"+18885103459",
-			from,
-			fmt.Sprintf("Got your message: %s", body),
-		)
-
-		if err != nil {
-			fmt.Printf("Error sending response SMS: %v\n", err)
-		}
+		fmt.Printf("Processing message from %s: %s\n", from, body)
 	}()
 }
