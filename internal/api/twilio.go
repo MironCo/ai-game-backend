@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/twilio/twilio-go"
@@ -46,19 +47,34 @@ func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
 	// Set content type to XML
 	c.Header("Content-Type", "text/xml")
 
-	// Log incoming request
-	fmt.Printf("Received SMS webhook: %+v\n", c.Request.PostForm)
+	// Get message details
+	from := c.PostForm("From")
+	body := c.PostForm("Body")
 
-	// Return TwiML response
-	c.String(200, `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Message>Thanks for your message!</Message>
-</Response>`)
+	// Process the message (replace this with your actual processing logic)
+	processedResponse := processMessage(body)
 
-	// Process asynchronously if needed
-	go func() {
-		from := c.PostForm("From")
-		body := c.PostForm("Body")
-		fmt.Printf("Processing message from %s: %s\n", from, body)
-	}()
+	// Log what happened
+	fmt.Printf("Processed message from %s: %s -> %s\n", from, body, processedResponse)
+
+	// Return TwiML response with the processed result
+	c.String(200, fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+		<Response>
+			<Message>%s</Message>
+		</Response>`, processedResponse))
+}
+
+// Add your processing logic here
+func processMessage(message string) string {
+	// Example processing - replace with your actual logic
+	switch strings.ToLower(message) {
+	case "hi", "hello":
+		return "Hello! How can I help you today?"
+	case "help":
+		return "Available commands: hi, help, status"
+	case "status":
+		return "All systems operational!"
+	default:
+		return fmt.Sprintf("You said: %s. What would you like to know?", message)
+	}
 }

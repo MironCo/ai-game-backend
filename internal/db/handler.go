@@ -88,6 +88,20 @@ func (h *DBHandler) AddMessageToDatabase(unityID string, messageText string, sen
 	return nil
 }
 
+func (h *DBHandler) AddTextToDatabase(unityID string, messageText string, senderNumber string, receiverNumber string) error {
+	_, err := h.db.Exec(`
+        INSERT INTO texts (unity_id, message, sender_number, receiver_number)
+        VALUES ($1, $2, $3, $4)
+    `, unityID, messageText, senderNumber, receiverNumber)
+
+	if err != nil {
+		fmt.Println("Error adding text message: " + err.Error())
+		return fmt.Errorf("failed to add message: %w", err)
+	}
+
+	return nil
+}
+
 func (h *DBHandler) GetLastMessagesFromDB(unityID string, numberBack int) ([]types.DBChatMessage, error) {
 	rows, err := h.db.Query(`
     SELECT message, sender, sent_to, created_at 
@@ -107,6 +121,34 @@ func (h *DBHandler) GetLastMessagesFromDB(unityID string, numberBack int) ([]typ
 	for rows.Next() {
 		var msg types.DBChatMessage
 		if err := rows.Scan(&msg.MessageText, &msg.Sender, &msg.SentTo, &msg.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		messages = append(messages, msg)
+	}
+
+	return messages, nil
+}
+
+func (h *DBHandler) GetLastTextsFromDB(unityID string, npcNumber string, numberBack int) ([]types.DBTextMessage, error) {
+	rows, err := h.db.Query(`
+		SELECT unity_id, message, sender_number, receiver_number, player_number, created_at 
+		FROM texts 
+		WHERE unity_id = $1 
+		AND (sender_number = $2 OR receiver_number = $2)
+		ORDER BY created_at DESC 
+		LIMIT $3
+	`, unityID, npcNumber, numberBack)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get messages: %w", err)
+	}
+
+	defer rows.Close()
+
+	var messages []types.DBTextMessage
+	for rows.Next() {
+		var msg types.DBTextMessage
+		if err := rows.Scan(&msg.UnityID, &msg.MessageText, &msg.SenderNumber, &msg.ReceiverNumber, &msg.PlayerNumber, &msg.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		messages = append(messages, msg)
