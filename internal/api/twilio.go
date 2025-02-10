@@ -111,6 +111,9 @@ func (h *TextingHandler) processMessage(from string, to string, message string) 
 		fmt.Println("Could not get text completion")
 		return "Couldn't process completion."
 	}
+	if err := h.dbHandler.AddTextToDatabase(player.UnityID, *completion, to, from, from); err != nil {
+		fmt.Println("Could not add text from AI to player to database.")
+	}
 
 	return *completion
 }

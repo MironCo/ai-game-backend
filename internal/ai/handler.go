@@ -113,7 +113,7 @@ func (h *AIHandler) GetTextCompletion(message string, history []types.DBTextMess
 
 	messages[0] = types.OpenRouterMessage{
 		Role:    "system",
-		Content: npc.GenerateSystemPrompt(npcPersonality),
+		Content: npc.GenerateSystemPrompt(npcPersonality) + ". The Player is texting you, so please respond as if you were texting with them, but keep your personality.",
 	}
 
 	// Add history messages
