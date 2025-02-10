@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"rd-backend/internal/db"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -11,11 +12,13 @@ import (
 
 type TextingHandler struct {
 	twilioClient *twilio.RestClient
+	dbHandler    *db.DBHandler
 }
 
-func NewTextingHandler() *TextingHandler {
+func NewTextingHandler(dbHandler *db.DBHandler) *TextingHandler {
 	return &TextingHandler{
 		twilioClient: twilio.NewRestClient(),
+		dbHandler:    dbHandler,
 	}
 }
 
@@ -34,6 +37,15 @@ func (h *TextingHandler) SendSMS(from, to, message string) error {
 	return nil
 }
 
+// get message
+// retrieve number
+// sql lookup in texts database, based on number received and current number
+// create response
+// send text message back from that number, based on previous text messages
+// therefore : find where rec# and send# are player/ai or ai/player.
+// how to get the number?
+// ai has it in json, each AI will have a different number
+
 func (h *TextingHandler) SendSMSBasic() {
 	err := h.SendSMS("+18885103459", "+16074221508", "Hello from your AI friend!")
 	if err != nil {
@@ -48,11 +60,12 @@ func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
 	c.Header("Content-Type", "text/xml")
 
 	// Get message details
+	to := c.PostForm("To")
 	from := c.PostForm("From")
 	body := c.PostForm("Body")
 
 	// Process the message (replace this with your actual processing logic)
-	processedResponse := processMessage(body)
+	processedResponse := processMessage(h.dbHandler, from, to, body)
 
 	// Log what happened
 	fmt.Printf("Processed message from %s: %s -> %s\n", from, body, processedResponse)
@@ -65,8 +78,16 @@ func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
 }
 
 // Add your processing logic here
-func processMessage(message string) string {
+func processMessage(dbHandler *db.DBHandler, from string, to string, message string) string {
 	// Example processing - replace with your actual logic
+	player, err := dbHandler.GetPlayerByPhoneNumber(from)
+	if err != nil {
+		fmt.Println("Could not find player by phone number")
+	}
+	if err := dbHandler.AddTextToDatabase(player.UnityID, message, from, to); err != nil {
+		fmt.Println("Could not add text to database.")
+	}
+
 	switch strings.ToLower(message) {
 	case "hi", "hello":
 		return "Hello! How can I help you today?"

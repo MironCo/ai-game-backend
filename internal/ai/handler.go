@@ -12,18 +12,20 @@ import (
 )
 
 type AIHandler struct {
-	client     *http.Client
-	baseURL    string
-	apiKey     string
-	npcConfigs *npc.NPCs
+	client          *http.Client
+	baseURL         string
+	apiKey          string
+	npcConfigs      *npc.NPCs
+	npcPhoneNumbers *npc.NPCNumbers
 }
 
-func NewAIHandler(npcConfigs *npc.NPCs) *AIHandler {
+func NewAIHandler(npcConfigs *npc.NPCs, npcPhoneNumbers *npc.NPCNumbers) *AIHandler {
 	return &AIHandler{
-		client:     &http.Client{},
-		baseURL:    "https://openrouter.ai/api/v1/chat/completions",
-		apiKey:     os.Getenv("OPENROUTER_API_KEY"),
-		npcConfigs: npcConfigs,
+		client:          &http.Client{},
+		baseURL:         "https://openrouter.ai/api/v1/chat/completions",
+		apiKey:          os.Getenv("OPENROUTER_API_KEY"),
+		npcConfigs:      npcConfigs,
+		npcPhoneNumbers: npcPhoneNumbers,
 	}
 }
 
@@ -102,9 +104,10 @@ func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMess
 	return &response.Choices[0].Message.Content, nil
 }
 
-func (h *AIHandler) GetTextCompletion(message string, history []types.DBTextMessage, aiNumber string, playerNumber string, npcId string) (*string, error) {
+func (h *AIHandler) GetTextCompletion(message string, history []types.DBTextMessage, aiNumber string, playerNumber string) (*string, error) {
 	// Convert messages for the OpenRouter request
-	npcPersonality := (*h.npcConfigs)[npcId]
+
+	npcPersonality := (*h.npcConfigs)[(*h.npcPhoneNumbers)[aiNumber]]
 
 	messages := make([]types.OpenRouterMessage, len(history)+2)
 

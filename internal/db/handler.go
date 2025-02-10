@@ -58,10 +58,28 @@ func (h *DBHandler) GetPlayerByUnityId(unityID string) (*types.Player, error) {
 	var player types.Player
 
 	err := h.db.QueryRow(`
-        SELECT id, unity_id 
+        SELECT id, unity_id, phone_number
         FROM players 
         WHERE unity_id = $1
-    `, unityID).Scan(&player.ID, &player.UnityID)
+    `, unityID).Scan(&player.ID, &player.UnityID, &player.PhoneNumber)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("player not found")
+		}
+		return nil, fmt.Errorf("database error: %w", err)
+	}
+
+	return &player, nil
+}
+
+func (h *DBHandler) GetPlayerByPhoneNumber(phoneNumber string) (*types.Player, error) {
+	var player types.Player
+
+	err := h.db.QueryRow(`
+		SELECT id, unity_id, phone_number
+        FROM players 
+        WHERE phone_number = $1`, phoneNumber).Scan(&player.ID, &player.UnityID, &player.PhoneNumber)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -148,7 +166,12 @@ func (h *DBHandler) GetLastTextsFromDB(unityID string, npcNumber string, numberB
 	var messages []types.DBTextMessage
 	for rows.Next() {
 		var msg types.DBTextMessage
-		if err := rows.Scan(&msg.UnityID, &msg.MessageText, &msg.SenderNumber, &msg.ReceiverNumber, &msg.PlayerNumber, &msg.CreatedAt); err != nil {
+		if err := rows.Scan(&msg.UnityID,
+			&msg.MessageText,
+			&msg.SenderNumber,
+			&msg.ReceiverNumber,
+			&msg.PlayerNumber,
+			&msg.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		messages = append(messages, msg)

@@ -2,6 +2,7 @@
     "bob_01": {
         "npc_id": "bob_01",
         "name": "Bob",
+        "npc_phone_number": "+18885103459",
         "location": "Town Square",
         "occupation": "Shopkeeper",
         "traits": [

@@ -9,6 +9,7 @@ import (
 )
 
 type NPCs map[string]types.NPC
+type NPCNumbers map[string]string
 
 func LoadNPCConfig(path string) (NPCs, error) {
 	data, err := os.ReadFile(path)
@@ -19,6 +20,14 @@ func LoadNPCConfig(path string) (NPCs, error) {
 	var npcs NPCs
 	err = json.Unmarshal(data, &npcs)
 	return npcs, err
+}
+
+func BuildPhoneIndex(npcs map[string]types.NPC) NPCNumbers {
+	index := make(NPCNumbers)
+	for _, npc := range npcs {
+		index[npc.PhoneNumber] = npc.ID
+	}
+	return index
 }
 
 func GenerateSystemPrompt(npc types.NPC) string {

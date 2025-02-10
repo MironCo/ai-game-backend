@@ -37,6 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Cannot Load NPC Config: %w", err)
 	}
+	npcPhoneNumbers := npc.BuildPhoneIndex(npcs)
 
 	// Database
 	dbHandler, err := db.NewDBHandler()
@@ -46,14 +47,14 @@ func main() {
 	defer dbHandler.Disconnect()
 
 	// AI
-	aiHandler := ai.NewAIHandler(&npcs)
+	aiHandler := ai.NewAIHandler(&npcs, &npcPhoneNumbers)
 
 	// Websockets
 	wsHandler := ws.NewWebsocketHandler(dbHandler, aiHandler)
 	router.GET("/ws", wsHandler.Handle)
 
 	//Texting TODO
-	textingHandler := api.NewTextingHandler()
+	textingHandler := api.NewTextingHandler(dbHandler)
 	//go textingHandler.SendSMSBasic()
 
 	// API
