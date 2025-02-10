@@ -2,8 +2,8 @@ package api
 
 import (
 	"fmt"
+	"rd-backend/internal/ai"
 	"rd-backend/internal/db"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/twilio/twilio-go"
@@ -13,12 +13,14 @@ import (
 type TextingHandler struct {
 	twilioClient *twilio.RestClient
 	dbHandler    *db.DBHandler
+	aiHandler    *ai.AIHandler
 }
 
-func NewTextingHandler(dbHandler *db.DBHandler) *TextingHandler {
+func NewTextingHandler(dbHandler *db.DBHandler, aiHandler *ai.AIHandler) *TextingHandler {
 	return &TextingHandler{
 		twilioClient: twilio.NewRestClient(),
 		dbHandler:    dbHandler,
+		aiHandler:    aiHandler,
 	}
 }
 
@@ -78,24 +80,25 @@ func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
 }
 
 // Add your processing logic here
-func processMessage(dbHandler *db.DBHandler, from string, to string, message string) string {
-	// Example processing - replace with your actual logic
-	player, err := dbHandler.GetPlayerByPhoneNumber(from)
+func (h *TextingHandler) processMessage(from string, to string, message string) string {
+	// from is player phone number, to is AI phone number
+
+	player, err := h.dbHandler.GetPlayerByPhoneNumber(from)
 	if err != nil {
 		fmt.Println("Could not find player by phone number")
 	}
-	if err := dbHandler.AddTextToDatabase(player.UnityID, message, from, to); err != nil {
+	if err := h.dbHandler.AddTextToDatabase(player.UnityID, message, from, to); err != nil {
 		fmt.Println("Could not add text to database.")
 	}
-
-	switch strings.ToLower(message) {
-	case "hi", "hello":
-		return "Hello! How can I help you today?"
-	case "help":
-		return "Available commands: hi, help, status"
-	case "status":
-		return "All systems operational!"
-	default:
-		return fmt.Sprintf("You said: %s. What would you like to know?", message)
+	textMessage, err := h.dbHandler.GetLastTextsFromDB(player.UnityID, to, 4)
+	if err != nil {
+		fmt.Println("Could not get last texts from DB")
 	}
+	completion, err := h.aiHandler.GetTextCompletion(message, textMessage, to, from)
+	if err != nil {
+		fmt.Println("Could not get text completion")
+		return "Couldn't process completion"
+	}
+
+	return *completion
 }
