@@ -67,7 +67,7 @@ func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
 	body := c.PostForm("Body")
 
 	// Process the message (replace this with your actual processing logic)
-	processedResponse := processMessage(h.dbHandler, from, to, body)
+	processedResponse := h.processMessage(from, to, body)
 
 	// Log what happened
 	fmt.Printf("Processed message from %s: %s -> %s\n", from, body, processedResponse)

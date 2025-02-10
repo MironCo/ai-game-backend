@@ -54,7 +54,7 @@ func main() {
 	router.GET("/ws", wsHandler.Handle)
 
 	//Texting TODO
-	textingHandler := api.NewTextingHandler(dbHandler)
+	textingHandler := api.NewTextingHandler(dbHandler, aiHandler)
 	//go textingHandler.SendSMSBasic()
 
 	// API
