@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"rd-backend/internal/ai"
 	"rd-backend/internal/db"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/twilio/twilio-go"
@@ -81,23 +82,34 @@ func (h *TextingHandler) ReceiveSMS(c *gin.Context) {
 
 // Add your processing logic here
 func (h *TextingHandler) processMessage(from string, to string, message string) string {
-	// from is player phone number, to is AI phone number
+	// FROM is player phone number, TO is AI phone number
+
+	// this is some high grade fuckin annoyance
+	if !strings.HasPrefix(from, "+") {
+		from = "+" + strings.TrimSpace(strings.TrimPrefix(from, "+"))
+	}
+	if !strings.HasPrefix(to, "+") {
+		to = "+" + strings.TrimSpace(strings.TrimPrefix(to, "+"))
+	}
 
 	player, err := h.dbHandler.GetPlayerByPhoneNumber(from)
 	if err != nil {
-		fmt.Println("Could not find player by phone number")
+		fmt.Println("Could not find player by phone number: " + err.Error())
+		return "Sorry, your number isn't registered in our system."
 	}
-	if err := h.dbHandler.AddTextToDatabase(player.UnityID, message, from, to); err != nil {
+	if err := h.dbHandler.AddTextToDatabase(player.UnityID, message, from, to, from); err != nil {
 		fmt.Println("Could not add text to database.")
+		return "Could not add text to database."
 	}
 	textMessage, err := h.dbHandler.GetLastTextsFromDB(player.UnityID, to, 4)
 	if err != nil {
 		fmt.Println("Could not get last texts from DB")
+		return "Could not get last texts from DB."
 	}
 	completion, err := h.aiHandler.GetTextCompletion(message, textMessage, to, from)
 	if err != nil {
 		fmt.Println("Could not get text completion")
-		return "Couldn't process completion"
+		return "Couldn't process completion."
 	}
 
 	return *completion

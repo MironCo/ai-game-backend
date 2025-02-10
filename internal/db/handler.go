@@ -76,10 +76,11 @@ func (h *DBHandler) GetPlayerByUnityId(unityID string) (*types.Player, error) {
 func (h *DBHandler) GetPlayerByPhoneNumber(phoneNumber string) (*types.Player, error) {
 	var player types.Player
 
+	fmt.Println(phoneNumber)
 	err := h.db.QueryRow(`
-		SELECT id, unity_id, phone_number
-        FROM players 
-        WHERE phone_number = $1`, phoneNumber).Scan(&player.ID, &player.UnityID, &player.PhoneNumber)
+	SELECT id, unity_id, phone_number 
+	FROM players 
+	WHERE phone_number = $1`, phoneNumber).Scan(&player.ID, &player.UnityID, &player.PhoneNumber)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -106,11 +107,11 @@ func (h *DBHandler) AddMessageToDatabase(unityID string, messageText string, sen
 	return nil
 }
 
-func (h *DBHandler) AddTextToDatabase(unityID string, messageText string, senderNumber string, receiverNumber string) error {
+func (h *DBHandler) AddTextToDatabase(unityID string, messageText string, senderNumber string, receiverNumber string, playerNumber string) error {
 	_, err := h.db.Exec(`
-        INSERT INTO texts (unity_id, message, sender_number, receiver_number)
-        VALUES ($1, $2, $3, $4)
-    `, unityID, messageText, senderNumber, receiverNumber)
+        INSERT INTO texts (unity_id, message, sender_number, receiver_number, player_number)
+        VALUES ($1, $2, $3, $4, $5)
+    `, unityID, messageText, senderNumber, receiverNumber, playerNumber)
 
 	if err != nil {
 		fmt.Println("Error adding text message: " + err.Error())
@@ -123,7 +124,7 @@ func (h *DBHandler) AddTextToDatabase(unityID string, messageText string, sender
 func (h *DBHandler) GetLastMessagesFromDB(unityID string, numberBack int) ([]types.DBChatMessage, error) {
 	rows, err := h.db.Query(`
     SELECT message, sender, sent_to, created_at 
-    	FROM messages 
+    	FROM texts 
     	WHERE unity_id = $1 
     	ORDER BY created_at DESC 
     	LIMIT $2
