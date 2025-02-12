@@ -62,6 +62,7 @@ func main() {
 	router.GET("/hello", apiHandler.HelloWorld)
 	router.POST("/register", apiHandler.RegisterPlayer)
 	router.POST("/login", apiHandler.LoginPlayer)
+	router.POST("/register-phone", apiHandler.RegisterPhoneNumber)
 	router.POST("/sms/receive", textingHandler.ReceiveSMS)
 	//router.POST("/test-ai", apiHandler.TestAIMessage)
 

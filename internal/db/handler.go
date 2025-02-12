@@ -76,7 +76,7 @@ func (h *DBHandler) GetPlayerByUnityId(unityID string) (*types.Player, error) {
 func (h *DBHandler) GetPlayerByPhoneNumber(phoneNumber string) (*types.Player, error) {
 	var player types.Player
 
-	fmt.Println(phoneNumber)
+	//fmt.Println(phoneNumber)
 	err := h.db.QueryRow(`
 	SELECT id, unity_id, phone_number 
 	FROM players 
@@ -87,6 +87,23 @@ func (h *DBHandler) GetPlayerByPhoneNumber(phoneNumber string) (*types.Player, e
 			return nil, fmt.Errorf("player not found")
 		}
 		return nil, fmt.Errorf("database error: %w", err)
+	}
+
+	return &player, nil
+}
+
+func (h *DBHandler) SetPlayerPhoneNumber(unityID string, phoneNumber string) (*types.Player, error) {
+	var player types.Player
+
+	err := h.db.QueryRow(`
+    	UPDATE players 
+    	SET phone_number = $1 
+    	WHERE unity_id = $2 
+    	RETURNING id, unity_id, phone_number`,
+		phoneNumber, unityID).Scan(&player.ID, &player.UnityID, &player.PhoneNumber)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not update player's phone number")
 	}
 
 	return &player, nil
@@ -124,7 +141,7 @@ func (h *DBHandler) AddTextToDatabase(unityID string, messageText string, sender
 func (h *DBHandler) GetLastMessagesFromDB(unityID string, numberBack int) ([]types.DBChatMessage, error) {
 	rows, err := h.db.Query(`
     SELECT message, sender, sent_to, created_at 
-    	FROM texts 
+    	FROM messages 
     	WHERE unity_id = $1 
     	ORDER BY created_at DESC 
     	LIMIT $2
