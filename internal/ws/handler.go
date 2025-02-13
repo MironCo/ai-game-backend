@@ -31,6 +31,15 @@ func NewWebsocketHandler(dbHandler *db.DBHandler, aiHandler *ai.AIHandler) *WSHa
 }
 
 func (h *WSHandler) Handle(c *gin.Context) {
+	// Get and validate Unity ID
+	unityID := c.Query("unity_id")
+	exists, err := h.dbHandler.GetPlayerByUnityId(unityID)
+	if err != nil || exists == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "player not found"})
+		return
+	}
+
+	// If auth passes, upgrade to WebSocket
 	ws, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		createErrorMessage("Upgrade Error: " + err.Error())

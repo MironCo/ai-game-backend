@@ -2,7 +2,7 @@
     "bob_01": {
         "npc_id": "bob_01",
         "name": "Bob",
-        "npc_phone_number": "+18885103459",
+        "npc_phone_number": "+18885103460",
         "location": "Town Square",
         "occupation": "Shopkeeper",
         "traits": [
@@ -17,5 +17,27 @@
         "goals": "Run a modest but successful shop",
         "backstory": "Born and raised in town, took over his father's shop. Nothing exciting has ever happened to him.",
         "speech_style": "Speaks plainly and directly, uses simple words"
+    },
+    "girl_01": {
+        "npc_id": "girl_01",
+        "name": "Gigi",
+        "npc_phone_number": "+18885103459",
+        "location": "Local Café",
+        "occupation": "Influencer trying to start a cat café",
+        "traits": [
+            "bubbly",
+            "extra",
+            "social media obsessed",
+            "secretly smart"
+        ],
+        "quirks": [
+            "Calls player 'cutie'",
+            "Says 'literally' a lot",
+            "Loves taking selfies with cats",
+            "Completely loses valley girl accent when talking business"
+        ],
+        "goals": "OMG cutie, gonna make this the most aesthetic café ever!",
+        "backstory": "LA girl who moved to Italy because it was totally aesthetic. Actually has an MBA but doesn't like to brag about it because that's not cute?",
+        "speech_style": "OMG cutie! Like, totally valley girl? Uses 'cutie' especially when flirting or excited. Lots of 'like' and statements that end as questions?"
     }
 }
