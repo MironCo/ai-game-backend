@@ -2,7 +2,7 @@ package types
 
 type RegisterPlayerRequest struct {
 	UnityID     string `json:"unity_id" binding:"required"`
-	PhoneNumber string `json:"phone_number" binding:"required"`
+	PhoneNumber string `json:"phone_number"`
 }
 
 type LoginPlayerRequest struct {

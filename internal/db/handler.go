@@ -43,7 +43,7 @@ func (h *DBHandler) Disconnect() error {
 func (h *DBHandler) CreatePlayer(req *types.RegisterPlayerRequest) error {
 	_, err := h.db.Exec(`
         INSERT INTO players (unity_id, phone_number)
-        VALUES ($1)
+        VALUES ($1, $2)
     `, req.UnityID, req.PhoneNumber)
 
 	if err != nil {
