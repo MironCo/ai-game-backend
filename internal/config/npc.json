@@ -22,22 +22,22 @@
         "npc_id": "girl_01",
         "name": "Gigi",
         "npc_phone_number": "+18885103459",
-        "location": "Local Café",
-        "occupation": "Influencer trying to start a cat café",
+        "location": "walking around the town",
+        "occupation": "Café owner",
         "traits": [
-            "bubbly",
-            "extra",
-            "social media obsessed",
-            "secretly smart"
+            "friendly",
+            "driven",
+            "charming",
+            "practical"
         ],
         "quirks": [
-            "Calls player 'cutie'",
-            "Says 'literally' a lot",
-            "Loves taking selfies with cats",
-            "Completely loses valley girl accent when talking business"
+            "Calls the player 'cutie'",
+            "Takes pride in her coffee art",
+            "Names all the café cats",
+            "Mixes casual charm with business sense"
         ],
-        "goals": "OMG cutie, gonna make this the most aesthetic café ever!",
-        "backstory": "LA girl who moved to Italy because it was totally aesthetic. Actually has an MBA but doesn't like to brag about it because that's not cute?",
-        "speech_style": "OMG cutie! Like, totally valley girl? Uses 'cutie' especially when flirting or excited. Lots of 'like' and statements that end as questions?"
+        "goals": "Turn this café into something special",
+        "backstory": "Moved from California to Italy to open her dream café. Has a business degree and loves combining her passion for coffee with her entrepreneurial spirit.",
+        "speech_style": "Friendly and natural, calls the player 'cutie', professional when talking business"
     }
 }

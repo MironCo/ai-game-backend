@@ -14,6 +14,11 @@ type ChatMessage struct {
 	NpcId   string `json:"npcId"`
 }
 
+type EventMessage struct {
+	UnityID string `json:"unity_id"`
+	
+}
+
 // Server Reponses
 type WSResponse struct {
 	Type    string          `json:"type"`

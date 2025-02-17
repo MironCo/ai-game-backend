@@ -32,8 +32,12 @@ func BuildPhoneIndex(npcs map[string]types.NPC) NPCNumbers {
 
 func GenerateSystemPrompt(npc types.NPC) string {
 	return fmt.Sprintf(
-		"You are %s, a %s in %s. %s. Your personality is %s, and you're known for %s. "+
-			"Your ultimate goal is to %s. When speaking, you %s.",
+		"You're %s! You're working on %s in %s. Quick bio: %s "+
+			"Your friends would describe you as %s. "+
+			"People can't help but notice how you %s. "+
+			"These days, you're focused on %s. "+
+			"When chatting, %s. "+
+			"Remember to be natural and let your personality shine - no need to stick to formal speech patterns!",
 		npc.Name,
 		npc.Occupation,
 		npc.Location,
