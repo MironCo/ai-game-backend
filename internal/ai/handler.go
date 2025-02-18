@@ -26,7 +26,7 @@ var (
 	}
 
 	GPTConfig = ModelConfig{
-		ModelName:      "openai/gpt-4-turbo",
+		ModelName:      "openai/gpt-4o-mini", // Restored to original model
 		ProviderOrder:  []string{"OpenAI"},
 		AllowFallbacks: false,
 	}
@@ -41,17 +41,45 @@ type AIHandler struct {
 }
 
 func NewAIHandler(npcConfigs *npc.NPCs, npcPhoneNumbers *npc.NPCNumbers) *AIHandler {
+	if npcConfigs == nil || npcPhoneNumbers == nil {
+		panic("npcConfigs and npcPhoneNumbers must not be nil")
+	}
+
+	apiKey := os.Getenv("OPENROUTER_API_KEY")
+	if apiKey == "" {
+		panic("OPENROUTER_API_KEY environment variable is not set")
+	}
+
 	return &AIHandler{
 		client:          &http.Client{},
 		baseURL:         "https://openrouter.ai/api/v1/chat/completions",
-		apiKey:          os.Getenv("OPENROUTER_API_KEY"),
+		apiKey:          apiKey,
 		npcConfigs:      npcConfigs,
 		npcPhoneNumbers: npcPhoneNumbers,
 	}
 }
 
+// validateModelConfig ensures the model configuration is valid
+func validateModelConfig(config ModelConfig) error {
+	if config.ModelName == "" {
+		return fmt.Errorf("model name cannot be empty")
+	}
+	if len(config.ProviderOrder) == 0 {
+		return fmt.Errorf("provider order cannot be empty")
+	}
+	return nil
+}
+
 // makeOpenRouterRequest handles the common logic for making requests to OpenRouter
 func (h *AIHandler) makeOpenRouterRequest(messages []types.OpenRouterMessage, modelConfig ModelConfig) (*string, error) {
+	if len(messages) == 0 {
+		return nil, fmt.Errorf("messages array cannot be empty")
+	}
+
+	if err := validateModelConfig(modelConfig); err != nil {
+		return nil, fmt.Errorf("invalid model configuration: %w", err)
+	}
+
 	request := types.OpenRouterRequest{
 		Model:    modelConfig.ModelName,
 		Messages: messages,
@@ -97,64 +125,99 @@ func (h *AIHandler) makeOpenRouterRequest(messages []types.OpenRouterMessage, mo
 }
 
 func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMessage, sender string, npcId string) (*string, error) {
-	npcPersonality := (*h.npcConfigs)[npcId]
-	messages := make([]types.OpenRouterMessage, len(history)+2)
+	if message == "" {
+		return nil, fmt.Errorf("message cannot be empty")
+	}
 
-	messages[0] = types.OpenRouterMessage{
+	npcPersonality, exists := (*h.npcConfigs)[npcId]
+	if !exists {
+		return nil, fmt.Errorf("NPC with ID %s not found", npcId)
+	}
+
+	// Initialize with capacity for system message + history + current message
+	messages := make([]types.OpenRouterMessage, 0, len(history)+2)
+
+	messages = append(messages, types.OpenRouterMessage{
 		Role:    "system",
 		Content: npc.GenerateSystemPrompt(npcPersonality),
+	})
+
+	// Add history messages if present
+	if len(history) > 0 {
+		for _, msg := range history {
+			role := "assistant"
+			if msg.Sender == "player" {
+				role = "user"
+			}
+
+			messages = append(messages, types.OpenRouterMessage{
+				Role:    role,
+				Content: msg.MessageText,
+			})
+		}
 	}
 
-	for i, msg := range history {
-		role := "assistant"
-		if msg.Sender == "player" {
-			role = "user"
-		}
-
-		messages[i+1] = types.OpenRouterMessage{
-			Role:    role,
-			Content: msg.MessageText,
-		}
-	}
-
-	messages[len(history)+1] = types.OpenRouterMessage{
+	// Add current message
+	messages = append(messages, types.OpenRouterMessage{
 		Role:    "user",
 		Content: message,
-	}
+	})
 
 	return h.makeOpenRouterRequest(messages, LlamaConfig)
 }
 
 func (h *AIHandler) GetTextCompletion(message string, history []types.DBTextMessage, aiNumber string, playerNumber string) (*string, error) {
-	npcPersonality := (*h.npcConfigs)[(*h.npcPhoneNumbers)[aiNumber]]
-	messages := make([]types.OpenRouterMessage, len(history)+2)
+	if message == "" {
+		return nil, fmt.Errorf("message cannot be empty")
+	}
 
-	messages[0] = types.OpenRouterMessage{
+	npcId, exists := (*h.npcPhoneNumbers)[aiNumber]
+	if !exists {
+		return nil, fmt.Errorf("no NPC found for number %s", aiNumber)
+	}
+
+	npcPersonality, exists := (*h.npcConfigs)[npcId]
+	if !exists {
+		return nil, fmt.Errorf("NPC with ID %s not found", npcId)
+	}
+
+	// Initialize with capacity for system message + history + current message
+	messages := make([]types.OpenRouterMessage, 0, len(history)+2)
+
+	messages = append(messages, types.OpenRouterMessage{
 		Role:    "system",
 		Content: npc.GenerateSystemPrompt(npcPersonality) + ". The Player is texting you, so please respond as if you were texting with them, but keep your personality.",
+	})
+
+	// Add history messages if present
+	if len(history) > 0 {
+		for _, msg := range history {
+			role := "assistant"
+			if msg.SenderNumber == playerNumber {
+				role = "user"
+			}
+
+			messages = append(messages, types.OpenRouterMessage{
+				Role:    role,
+				Content: msg.MessageText,
+			})
+		}
 	}
 
-	for i, msg := range history {
-		role := "assistant"
-		if msg.SenderNumber == playerNumber {
-			role = "user"
-		}
-
-		messages[i+1] = types.OpenRouterMessage{
-			Role:    role,
-			Content: msg.MessageText,
-		}
-	}
-
-	messages[len(history)+1] = types.OpenRouterMessage{
+	// Add current message
+	messages = append(messages, types.OpenRouterMessage{
 		Role:    "user",
 		Content: message,
-	}
+	})
 
 	return h.makeOpenRouterRequest(messages, LlamaConfig)
 }
 
 func (h *AIHandler) GetJSONCompletion(message string) (*string, error) {
+	if message == "" {
+		return nil, fmt.Errorf("message cannot be empty")
+	}
+
 	messages := []types.OpenRouterMessage{
 		{
 			Role:    "system",
