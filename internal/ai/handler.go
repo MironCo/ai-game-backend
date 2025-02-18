@@ -228,6 +228,21 @@ func (h *AIHandler) GetJSONCompletion(message string) (*string, error) {
 	return h.makeOpenRouterRequest(messages, GPTConfig)
 }
 
+func (h *AIHandler) GetDescriptionCompletion(message string) (*string, error) {
+	if message == "" {
+		return nil, fmt.Errorf("message cannot be empty")
+	}
+
+	messages := []types.OpenRouterMessage{
+		{
+			Role:    "system",
+			Content: "Please summarize the info in this JSON object as a short setence, describing what the player did. E.G: The player.... " + message,
+		},
+	}
+
+	return h.makeOpenRouterRequest(messages, GPTConfig)
+}
+
 func (h *AIHandler) addHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+h.apiKey)

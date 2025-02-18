@@ -81,7 +81,12 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 		}
 		return h.handleSystemMessage(&systemMsg)
 	case "event":
-		return createErrorMessage("Event... event (websocket event) not yet implemented")
+		var eventMsg types.EventMessage
+		if err := json.Unmarshal(msg.Content, &eventMsg); err != nil {
+			log.Printf("Error Parsing Message to Event Message %v", err)
+			return createErrorMessage("Invalid Event Message")
+		}
+		return h.handleEventMessage(&eventMsg)
 	default:
 		return createErrorMessage("Unknown Message Type")
 	}
@@ -143,13 +148,38 @@ func (h *WSHandler) handleSystemMessage(msg *types.ChatMessage) types.WSResponse
 	}
 }
 
-/*func (h *WSHandler) handleEventMessage(msg *types.EventMessage) types.WSResponse {
-	event := types.DBPlayerEvent{
-		UnityID:   msg.UnityID,
-		EventType: msg.EventType,
+func (h *WSHandler) handleEventMessage(msg *types.EventMessage) types.WSResponse {
+	log.Printf(msg.EventDetails)
+	detailsDecription, err := h.aiHandler.GetDescriptionCompletion(msg.EventDetails)
 
+	if err != nil {
+		log.Printf("Could not create text description of json")
+		return createErrorMessage("could not create text description of JSON")
 	}
-}*/
+
+	log.Printf(*detailsDecription)
+
+	event := types.DBPlayerEvent{
+		UnityID:      msg.UnityID,
+		EventType:    msg.EventType,
+		EventDetails: *detailsDecription,
+	}
+
+	if err := h.dbHandler.AddEventToDatabase(event.UnityID, event.EventType, event.EventDetails); err != nil {
+		return createErrorMessage(err.Error())
+	}
+
+	response := types.EventResponse{
+		EventType: event.EventType,
+	}
+
+	content, _ := json.Marshal(response)
+
+	return types.WSResponse{
+		Type:    "event",
+		Content: content,
+	}
+}
 
 func createErrorMessage(msg string) types.WSResponse {
 	content, _ := json.Marshal(map[string]string{
