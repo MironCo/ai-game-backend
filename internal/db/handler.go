@@ -138,6 +138,19 @@ func (h *DBHandler) AddTextToDatabase(unityID string, messageText string, sender
 	return nil
 }
 
+func (h *DBHandler) AddEventToDatabase(unityID string, eventType string, eventDetails string) error {
+	_, err := h.db.Exec(`
+		INSERT INTO events (unity_id, event_type, event_details)
+		VALUES ($1, $2, $3)
+	`, unityID, eventType, eventDetails)
+
+	if err != nil {
+		return fmt.Errorf("could not add event into database: %w", err)
+	}
+
+	return nil
+}
+
 func (h *DBHandler) GetLastMessagesFromDB(unityID string, numberBack int) ([]types.DBChatMessage, error) {
 	rows, err := h.db.Query(`
     SELECT message, sender, sent_to, created_at 
@@ -184,12 +197,7 @@ func (h *DBHandler) GetLastTextsFromDB(unityID string, npcNumber string, numberB
 	var messages []types.DBTextMessage
 	for rows.Next() {
 		var msg types.DBTextMessage
-		if err := rows.Scan(&msg.UnityID,
-			&msg.MessageText,
-			&msg.SenderNumber,
-			&msg.ReceiverNumber,
-			&msg.PlayerNumber,
-			&msg.CreatedAt); err != nil {
+		if err := rows.Scan(&msg.UnityID, &msg.MessageText, &msg.SenderNumber, &msg.ReceiverNumber, &msg.PlayerNumber, &msg.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		messages = append(messages, msg)

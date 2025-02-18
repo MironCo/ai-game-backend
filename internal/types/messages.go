@@ -15,8 +15,9 @@ type ChatMessage struct {
 }
 
 type EventMessage struct {
-	UnityID string `json:"unity_id"`
-	
+	UnityID      string `json:"unity_id"`
+	EventType    string `json:"event_type"`
+	EventDetails string `json:"event_details"`
 }
 
 // Server Reponses
@@ -28,4 +29,8 @@ type WSResponse struct {
 type ChatResponse struct {
 	Completion string `json:"completion"`
 	NpcId      string `json:"npcId"`
+}
+
+type EventResponse struct {
+	EventType string `json:"event_type"`
 }

@@ -80,6 +80,8 @@ func (h *WSHandler) handleMessage(msg types.Message) types.WSResponse {
 			return createErrorMessage("Invalid System Message")
 		}
 		return h.handleSystemMessage(&systemMsg)
+	case "event":
+		return createErrorMessage("Event... event (websocket event) not yet implemented")
 	default:
 		return createErrorMessage("Unknown Message Type")
 	}
@@ -140,6 +142,14 @@ func (h *WSHandler) handleSystemMessage(msg *types.ChatMessage) types.WSResponse
 		Content: content,
 	}
 }
+
+/*func (h *WSHandler) handleEventMessage(msg *types.EventMessage) types.WSResponse {
+	event := types.DBPlayerEvent{
+		UnityID:   msg.UnityID,
+		EventType: msg.EventType,
+
+	}
+}*/
 
 func createErrorMessage(msg string) types.WSResponse {
 	content, _ := json.Marshal(map[string]string{
