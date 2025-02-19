@@ -19,9 +19,9 @@ type ModelConfig struct {
 }
 
 var (
-	LlamaConfig = ModelConfig{
-		ModelName:      "meta-llama/llama-3.3-70b-instruct",
-		ProviderOrder:  []string{"Together", "DeepInfra"},
+	RoleplayConfig = ModelConfig{
+		ModelName:      "mistralai/mistral-nemo",
+		ProviderOrder:  []string{"Mistral", "DeepInfra"},
 		AllowFallbacks: false,
 	}
 
@@ -164,7 +164,7 @@ func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMess
 		Content: message,
 	})
 
-	return h.makeOpenRouterRequest(messages, LlamaConfig)
+	return h.makeOpenRouterRequest(messages, RoleplayConfig)
 }
 
 func (h *AIHandler) GetTextCompletion(message string, history []types.DBTextMessage, aiNumber string, playerNumber string) (*string, error) {
@@ -211,7 +211,7 @@ func (h *AIHandler) GetTextCompletion(message string, history []types.DBTextMess
 		Content: message,
 	})
 
-	return h.makeOpenRouterRequest(messages, LlamaConfig)
+	return h.makeOpenRouterRequest(messages, RoleplayConfig)
 }
 
 func (h *AIHandler) GetJSONCompletion(message string) (*string, error) {
