@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"rd-backend/internal/ai/npc"
@@ -101,7 +100,7 @@ func (h *AIHandler) makeOpenRouterRequest(messages []types.OpenRouterMessage, mo
 	}
 
 	h.addHeaders(req)
-	log.Println(req.Body)
+	//log.Println(req.Body)
 
 	resp, err := h.client.Do(req)
 	if err != nil {
