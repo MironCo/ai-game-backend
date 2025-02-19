@@ -48,3 +48,40 @@ func GenerateSystemPrompt(npc types.NPC) string {
 		npc.SpeechStyle,
 	)
 }
+
+func GenerateSystemPromptWithEvents(npc types.NPC, events []types.DBPlayerEvent) string {
+	// Build the base prompt
+	basePrompt := fmt.Sprintf(
+		"You're %s! You're working on %s in %s. Quick bio: %s "+
+			"Your friends would describe you as %s. "+
+			"People can't help but notice how you %s. "+
+			"These days, you're focused on %s. "+
+			"When chatting, %s.",
+		npc.Name,
+		npc.Occupation,
+		npc.Location,
+		npc.Backstory,
+		strings.Join(npc.Traits, ", "),
+		strings.Join(npc.Quirks, " and "),
+		npc.Goals,
+		npc.SpeechStyle,
+	)
+
+	// If there are events, add them to the prompt
+	if len(events) > 0 {
+		eventDetails := make([]string, 0, len(events))
+		for _, event := range events {
+			eventDetails = append(eventDetails, event.EventDetails)
+		}
+
+		basePrompt += fmt.Sprintf(
+			"\nThese are the things that the player has done recently: %s",
+			strings.Join(eventDetails, "; "),
+		)
+	}
+
+	// Add the personality reminder
+	basePrompt += "\nRemember to be natural and let your personality shine - no need to stick to formal speech patterns!"
+
+	return basePrompt
+}

@@ -99,9 +99,14 @@ func (h *WSHandler) handleChatMessage(msg *types.ChatMessage) types.WSResponse {
 		return createErrorMessage(err.Error())
 	}
 
+	eventHistory, err := h.dbHandler.GetLastEventsFromDB(msg.UnityID, 4)
+	if err != nil {
+		return createErrorMessage("Could not get last events from Database")
+	}
+
 	h.dbHandler.AddMessageToDatabase(msg.UnityID, msg.Text, "player", msg.NpcId)
 
-	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, "user", msg.NpcId)
+	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, eventHistory, "user", msg.NpcId)
 	if err != nil || completion == nil {
 		return createErrorMessage(err.Error())
 	}
@@ -128,7 +133,12 @@ func (h *WSHandler) handleSystemMessage(msg *types.ChatMessage) types.WSResponse
 		return createErrorMessage("Could not get last messages from Database")
 	}
 
-	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, "system", msg.NpcId)
+	eventHistory, err := h.dbHandler.GetLastEventsFromDB(msg.UnityID, 4)
+	if err != nil {
+		return createErrorMessage("Could not get last events from Database")
+	}
+
+	completion, err := h.aiHandler.GetChatCompletion(msg.Text, history, eventHistory, "system", msg.NpcId)
 	if err != nil || completion == nil {
 		return createErrorMessage(err.Error())
 	}

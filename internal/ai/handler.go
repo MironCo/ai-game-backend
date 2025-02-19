@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"rd-backend/internal/ai/npc"
@@ -100,6 +101,7 @@ func (h *AIHandler) makeOpenRouterRequest(messages []types.OpenRouterMessage, mo
 	}
 
 	h.addHeaders(req)
+	log.Println(req.Body)
 
 	resp, err := h.client.Do(req)
 	if err != nil {
@@ -124,7 +126,7 @@ func (h *AIHandler) makeOpenRouterRequest(messages []types.OpenRouterMessage, mo
 	return &response.Choices[0].Message.Content, nil
 }
 
-func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMessage, sender string, npcId string) (*string, error) {
+func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMessage, eventHistory []types.DBPlayerEvent, sender string, npcId string) (*string, error) {
 	if message == "" {
 		return nil, fmt.Errorf("message cannot be empty")
 	}
@@ -139,7 +141,7 @@ func (h *AIHandler) GetChatCompletion(message string, history []types.DBChatMess
 
 	messages = append(messages, types.OpenRouterMessage{
 		Role:    "system",
-		Content: npc.GenerateSystemPrompt(npcPersonality),
+		Content: npc.GenerateSystemPromptWithEvents(npcPersonality, eventHistory),
 	})
 
 	// Add history messages if present
@@ -236,7 +238,7 @@ func (h *AIHandler) GetDescriptionCompletion(message string) (*string, error) {
 	messages := []types.OpenRouterMessage{
 		{
 			Role:    "system",
-			Content: "Please summarize the info in this JSON object as a short setence, describing what the player did. E.G: The player.... " + message,
+			Content: "Please summarize the info in this JSON object as a short sentence, describing what the player did. E.G: The player.... " + message,
 		},
 	}
 

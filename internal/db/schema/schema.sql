@@ -14,8 +14,8 @@ CREATE TABLE messages (
 )
 
 CREATE TABLE texts (
-    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    unity_id VARCHAR (255) NOT NULL,
+    id SERIAL PRIMARY KEY,
+    unity_id TEXT NOT NULL,
     message TEXT NOT NULL,
     sender_number VARCHAR(50) NOT NULL,
     receiver_number VARCHAR(50) NOT NULL,
