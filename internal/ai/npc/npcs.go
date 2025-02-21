@@ -75,7 +75,7 @@ func GenerateSystemPromptWithEvents(npc types.NPC, events []types.DBPlayerEvent)
 		}
 
 		basePrompt += fmt.Sprintf(
-			"\nThese are the things that the player has done recently: %s",
+			"\nThese are the things that the player has done recently, use these to inform your response: %s",
 			strings.Join(eventDetails, "; "),
 		)
 	}

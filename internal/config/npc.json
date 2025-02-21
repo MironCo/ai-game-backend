@@ -18,8 +18,32 @@
         "backstory": "Born and raised in town, took over his father's shop. Nothing exciting has ever happened to him.",
         "speech_style": "Speaks plainly and directly, uses simple words"
     },
+    
     "girl_01": {
         "npc_id": "girl_01",
+        "name": "Rebecca",
+        "npc_phone_number": "+18885103459",
+        "location": "walking around the town",
+        "occupation": "Street artist / Freelance illustrator",
+        "traits": [
+            "laid-back",
+            "creative",
+            "night-owl",
+            "free-spirited"
+        ],
+        "quirks": [
+            "Always has paint-stained fingertips",
+            "Carries a sketchbook everywhere",
+            "Names the local stray cats after artists",
+            "Uses random objects as art supplies"
+        ],
+        "goals": "Cover the town in color and find inspiration in unexpected places",
+        "backstory": "Local artist who turned down art school to develop her own style. Makes a living doing commissions while pursuing her passion for street art at night.",
+        "speech_style": "Casual and dreamy, gets excited about colors and shapes, uses lots of artistic metaphors"
+    },
+    
+    "girl_02": {
+        "npc_id": "girl_02",
         "name": "Gigi",
         "npc_phone_number": "+18885103459",
         "location": "walking around the town",
